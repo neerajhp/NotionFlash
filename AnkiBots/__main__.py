@@ -16,7 +16,7 @@ load_dotenv()
 
 #ANKI server properties
 ankiServerURL = "http://127.0.0.1:8765/"
-DECK = "CS"
+DECK = os.getenv("DECK")
 
 #Connect to Notion
 # API Endpoints and variables
