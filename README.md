@@ -22,7 +22,7 @@ PAGE_TWO=...
 PAGE_THREE=...
 ```
 
-The value for NOTION_SECRET is your Notion authentication token. You can find information about this here [Notion API Authorisation](https://developers.notion.com/reference/authentication)
+The value for NOTION_SECRET is your Notion authentication token. You can find information about this here [Notion API Authorisation](https://developers.notion.com/reference/authentication) and how to setup an API endpoint and share your Notion pages to it.
 
 The value for DECK is the name of the ANKI deck you wish to add cards to.
 
