@@ -23,7 +23,7 @@ DECK = os.getenv("DECK")
 SECRET = os.getenv("NOTION_SECRET")
 baseNotionURL = "https://api.notion.com/v1/blocks/"
 HEADER = {"Authorization": SECRET, "Notion-Version":"2021-05-13", "Content-Type": "application/json"}
-DATABASES = [{"Database":os.getenv("DATABASESYSTEMS_ID"), "cardTag": "DatabaseSystems"},{"Database":os.getenv("AWS_ID"), "cardTag": "AWS"}]
+DATABASES = [{"Database":os.getenv("AWS_ID"), "cardTag": "AWS"}]
 
 
 
