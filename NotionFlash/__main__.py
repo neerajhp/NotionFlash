@@ -4,6 +4,7 @@ import time
 import os
 from dotenv import load_dotenv
 from pathlib import Path
+import notionservice.service as notionService
 
 
 
@@ -20,54 +21,15 @@ DECK = os.getenv("DECK")
 
 #Connect to Notion
 # API Endpoints and variables
-SECRET = os.getenv("NOTION_SECRET")
-baseNotionURL = "https://api.notion.com/v1/blocks/"
-HEADER = {"Authorization": SECRET, "Notion-Version":"2021-05-13", "Content-Type": "application/json"}
-DATABASES = [{"Database":os.getenv("AWS_ID"), "cardTag": "AWS"}]
+
+PAGES = [{"pageID":os.getenv("AWS_ID"), "cardTag": "AWS"}]
 
 
 
 
 #************** HELPERS **************# 
 
-def getNotionPage(id):
-    """Notion API to get blocks from page. Limited to 100 results"""
-    getPage = True
-    responseJSON = {"has_more" : False, "start_cursor": None}
-    pageContent = []
-    params = {}
 
-    while (getPage):
-
-        try:
-            response = requests.get(baseNotionURL + id + "/children", headers=HEADER, data={}, params=params)
-            responseJSON = response.json()
-            response.raise_for_status()
-        except requests.exceptions.HTTPError as errh:
-            print("There was an error with Notion")
-            pass
-        except requests.exceptions.ConnectionError as errc:
-            print(errc)
-            pass
-        except requests.exceptions.Timeout as errt:
-            print(errt)
-            pass
-        except requests.exceptions.RequestException as err:
-            print(err)
-            pass
-       
-
-        # Check for pagination
-        if responseJSON["has_more"]:
-            params["start_cursor"] =  responseJSON["next_cursor"]
-            getPage = True
-        else:
-            getPage = False
-                
-        x = responseJSON
-        pageContent += responseJSON["results"]
-    
-    return pageContent
 
 
 def stringFormatter(contentArray):
@@ -186,10 +148,20 @@ def createCard(payload):
 #************** MAIN **************#
 
 def main():
+
+    if DEBUG:
+        __location__ = os.path.realpath(
+        os.path.join(os.getcwd(), os.path.dirname(__file__)))
+        f = open(os.path.join(__location__, "./output.txt"), "w")
+
+    for notionPage in PAGES: 
+        pageContent = notionService.getPageContent(notionPage["pageID"])
+        toggleContent = notionService.filterContent(pageContent, "toggle")
     #Open Anki
-    #Get List of pages
-    #Get toggle lists
-    #Pass list to Anki to add cards
+    #For each notion page
+        #Collect Toggle Lists
+        #Pass list to Anki to add cards
+    #Print Report?
     #Finish
 
 
@@ -198,103 +170,97 @@ def main():
 
 
 
-    if DEBUG:
-        __location__ = os.path.realpath(
-        os.path.join(os.getcwd(), os.path.dirname(__file__)))
-        f = open(os.path.join(__location__, "./output.txt"), "w")
+    # # Open Anki
+    # os.system("open /Applications/Anki.app")
 
+    # for notionPage in DATABASES: 
 
-    # Open Anki
-    os.system("open /Applications/Anki.app")
-
-    for notionPage in DATABASES: 
-
-        #Get Notion Page
-        response = getNotionPage(notionPage["Database"])
-        pageContent = response
+    #     #Get Notion Page
+    #     response = getNotionPage(notionPage["Database"])
+    #     pageContent = response
         
 
-        # Recursively get all page content
-        for block in pageContent:
-            if block['has_children'] == True:
-                try:
-                    response = requests.get(baseNotionURL + block['id'] + "/children", headers=HEADER, data={})
-                    response.raise_for_status()
-                    pageContent += response.json()["results"]
-                except requests.exceptions.HTTPError as errh:
-                    print(errh)
-                    pass
-                except requests.exceptions.ConnectionError as errc:
-                    print(errc)
-                    pass
-                except requests.exceptions.Timeout as errt:
-                    print(errt)
-                    pass
-                except requests.exceptions.RequestException as err:
-                    print(err)
-                    pass
+    #     # Recursively get all page content
+    #     for block in pageContent:
+    #         if block['has_children'] == True:
+    #             try:
+    #                 response = requests.get(baseNotionURL + block['id'] + "/children", headers=HEADER, data={})
+    #                 response.raise_for_status()
+    #                 pageContent += response.json()["results"]
+    #             except requests.exceptions.HTTPError as errh:
+    #                 print(errh)
+    #                 pass
+    #             except requests.exceptions.ConnectionError as errc:
+    #                 print(errc)
+    #                 pass
+    #             except requests.exceptions.Timeout as errt:
+    #                 print(errt)
+    #                 pass
+    #             except requests.exceptions.RequestException as err:
+    #                 print(err)
+    #                 pass
 
-        # Filter toggle content 
-        toggleContent = [block for block in pageContent if block['type'] == 'toggle']
-        print("Successfully got toggle lists from " + notionPage["cardTag"] + " page on Notion.")
+    #     # Filter toggle content 
+    #     toggleContent = [block for block in pageContent if block['type'] == 'toggle']
+    #     print("Successfully got toggle lists from " + notionPage["cardTag"] + " page on Notion.")
 
-        #Anki properties to report
-        totalCards = len(toggleContent)
-        duplicateCards = 0
-        newCards = 0
-        cardsAdded = []
+    #     #Anki properties to report
+    #     totalCards = len(toggleContent)
+    #     duplicateCards = 0
+    #     newCards = 0
+    #     cardsAdded = []
 
 
-        #Convert toggle lists to JSON payload
-        for toggle in toggleContent:
-            #Get toggle header (the question)
-            toggleQuestion = toggle["toggle"]["text"]
-            try:
-                #Get toggle body (the answer)
-                response = requests.get(baseNotionURL + toggle['id'] + "/children", headers=HEADER, data={}).json()
-                #Format body content into valid ANKI payload
-                toggleAnswer = response["results"]
-                #Create ANKI Payload
-                newCard = createPayload(toggleQuestion, toggleAnswer, notionPage["cardTag"])
-                #Post to ANKI server
-                ankiResponse = createCard(newCard)
-                if ankiResponse['error'] is not None:
-                    duplicateCards += 1
-                else:
-                    newCards += 1
-                    cardsAdded.append([newCard["params"]["note"]["fields"]["Front"] ,newCard["params"]["note"]["fields"]["Back"]])
+    #     #Convert toggle lists to JSON payload
+    #     for toggle in toggleContent:
+    #         #Get toggle header (the question)
+    #         toggleQuestion = toggle["toggle"]["text"]
+    #         try:
+    #             #Get toggle body (the answer)
+    #             response = requests.get(baseNotionURL + toggle['id'] + "/children", headers=HEADER, data={}).json()
+    #             #Format body content into valid ANKI payload
+    #             toggleAnswer = response["results"]
+    #             #Create ANKI Payload
+    #             newCard = createPayload(toggleQuestion, toggleAnswer, notionPage["cardTag"])
+    #             #Post to ANKI server
+    #             ankiResponse = createCard(newCard)
+    #             if ankiResponse['error'] is not None:
+    #                 duplicateCards += 1
+    #             else:
+    #                 newCards += 1
+    #                 cardsAdded.append([newCard["params"]["note"]["fields"]["Front"] ,newCard["params"]["note"]["fields"]["Back"]])
                     
-                if DEBUG:
-                    f.write(newCard["params"]["note"]["fields"]["Front"] + "\n" + newCard["params"]["note"]["fields"]["Back"])
-                    json.dump(newCard, f)
-                    f.write("\n\n")
+    #             if DEBUG:
+    #                 f.write(newCard["params"]["note"]["fields"]["Front"] + "\n" + newCard["params"]["note"]["fields"]["Back"])
+    #                 json.dump(newCard, f)
+    #                 f.write("\n\n")
                 
-            except requests.exceptions.HTTPError as errh:
-                    print(errh)
-                    pass
-            except requests.exceptions.ConnectionError as errc:
-                    print("Connecton Refused")
-                    time.sleep(2)
-                    pass
-            except requests.exceptions.Timeout as errt:
-                    print(errt)
-                    pass
-            except requests.exceptions.RequestException as err:
-                    print(err)
-                    pass
+    #         except requests.exceptions.HTTPError as errh:
+    #                 print(errh)
+    #                 pass
+    #         except requests.exceptions.ConnectionError as errc:
+    #                 print("Connecton Refused")
+    #                 time.sleep(2)
+    #                 pass
+    #         except requests.exceptions.Timeout as errt:
+    #                 print(errt)
+    #                 pass
+    #         except requests.exceptions.RequestException as err:
+    #                 print(err)
+    #                 pass
             
-        print("\n" + notionPage["cardTag"] + " tags done.\n")
-        print("\tTotal number of toggles detected: " + str(totalCards))
-        print("\tNumber of duplicate cards: " + str(duplicateCards) )
-        print("\tNumber of new cards: " + str(newCards) )
-        if len(cardsAdded) > 0:
-            print("\tCards Added: ")
-            for card in cardsAdded:
-                print("\n\n\t" + card[0] + "\n\t" + card[1])
+    #     print("\n" + notionPage["cardTag"] + " tags done.\n")
+    #     print("\tTotal number of toggles detected: " + str(totalCards))
+    #     print("\tNumber of duplicate cards: " + str(duplicateCards) )
+    #     print("\tNumber of new cards: " + str(newCards) )
+    #     if len(cardsAdded) > 0:
+    #         print("\tCards Added: ")
+    #         for card in cardsAdded:
+    #             print("\n\n\t" + card[0] + "\n\t" + card[1])
 
-    print("\nALL DONE!\n")
+    # print("\nALL DONE!\n")
 
-    if DEBUG:
+    # if DEBUG:
         f.close()
     # # Close Anki
     # os.system("pkill Anki")
