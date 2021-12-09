@@ -1,6 +1,3 @@
-import requests
-import json
-import time
 import os
 from dotenv import load_dotenv
 import notionservice.service as notionService
