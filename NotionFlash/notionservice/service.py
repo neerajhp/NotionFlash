@@ -1,5 +1,30 @@
 import notionservice.api as notionAPI
 
+
+def getToggleHeader(toggle):
+    """ Gets typed content within block.
+    
+        Parameters:
+            id (str): Notion Block ID
+
+        Returns:
+            pageBlocks (json[]): JSON array of parent blocks on page.
+    """
+    return toggle["toggle"]["text"]
+
+def getToggleBody(toggle):
+    """ Gets nested content of notion toggle.
+    
+        Parameters:
+            toggle (JSON[]): Notion JSON Block
+
+        Returns:
+            Notion JSON payload of content
+    """
+    return notionAPI.getBlocks(toggle['id'])['results']
+
+
+
 def getPageRootBlocks(id):
     """ Gets all root blocks on a specified Notion page.
     
@@ -7,7 +32,7 @@ def getPageRootBlocks(id):
             id (str): Notion Block OR Page ID
 
         Returns:
-            pageBlocks (json[]): JSON array of parent blocks on page.
+            pageBlocks (JSON[]): JSON array of parent blocks on page.
     """
     # Initial values
     getNext = True
@@ -31,11 +56,11 @@ def getPageRootBlocks(id):
     
     return pageBlocks
 
-def filterContent(content, filter):
-    """ Filter JSON array (formatted as Notion Payload) by content type.
+def filterBlocks(content, filter):
+    """ Filter JSON array (formatted as Notion Payload) by type of block.
         
         Parameters:
-            content (json[]): JSON array of notion content
+            content (json[]): JSON array of notion blocks
             filter (str): content type 
 
         Returns:
@@ -44,8 +69,8 @@ def filterContent(content, filter):
     return [block for block in content if block['type'] == filter]
 
 
-def getPageContent(pageID):
-    """ Recursively gets all nested content of Notion page specified by id.
+def getAllPageBlocks(pageID):
+    """ Recursively gets all nested blocks of Notion page specified by id.
         
         Parameters:
             id (str): Notion Page ID

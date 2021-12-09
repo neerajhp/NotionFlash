@@ -145,6 +145,11 @@ def createCard(payload):
     
     return response
 
+def getQuestion(toggle):
+    return notionService.getToggleHeader(toggle)
+
+def getAnswer(toggle):
+    return notionService.getToggleBody
 #************** MAIN **************#
 
 def main():
@@ -155,8 +160,15 @@ def main():
         f = open(os.path.join(__location__, "./output.txt"), "w")
 
     for notionPage in PAGES: 
-        pageContent = notionService.getPageContent(notionPage["pageID"])
-        toggleContent = notionService.filterContent(pageContent, "toggle")
+        pageBlocks = notionService.getAllPageBlocks(notionPage["pageID"])
+        toggleLists = notionService.filterBlocks(pageBlocks, "toggle")
+        #TODO filter toggleLists by last updated
+
+        for toggle in toggleLists:
+            #Get toggle header (the question)
+            toggleQuestion = getQuestion(toggle)
+            toggleAnswer = getAnswer(toggle)
+
     #Open Anki
     #For each notion page
         #Collect Toggle Lists

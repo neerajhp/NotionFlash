@@ -19,10 +19,8 @@ def getBlocks(id, params={}):
     
         Parameters:
             id (str): Notion Block ID
-            params: 
+            params: Optional argument used to specify starting block ID for pagination.
 
-        Returns:
-            response (json[]): JSON array of block content.
     """
     try:
         response = requests.get(baseNotionURL + id + "/children", headers=HEADER, data={}, params=params)
