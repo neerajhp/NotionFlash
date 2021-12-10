@@ -24,7 +24,6 @@ PAGES = [{"pageID":os.getenv("DUMMY_PAGE_ID"), "cardTag": "dummy"}]
 
 #************** HELPERS **************#
 
-
 def getQuestion(toggle):
     return notionService.getToggleHeader(toggle)
 
