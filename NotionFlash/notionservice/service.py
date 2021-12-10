@@ -10,7 +10,7 @@ def getToggleHeader(toggle):
         Returns:
             pageBlocks (json[]): JSON array of parent blocks on page.
     """
-    #TODO Need more comprehensive testing
+    # TODO Need more comprehensive testing
     return toggle['toggle']['text']
 
 
@@ -80,13 +80,14 @@ def getAllPageBlocks(pageID):
         Returns:
             pageContent (json[]): JSON array of page content.
     """
-    pageContent = []
-    parentBlocks = getPageRootBlocks(pageID)
 
-    #BUG: If parent block is toggle then content returned is only toggle answer
-    for block in parentBlocks:
-       blockContent = notionAPI.getBlocks(block["id"])
-       pageContent += blockContent["results"]
+    pageContent = getPageRootBlocks(pageID)
+
+    # BUG: If parent block is toggle then content returned is only toggle answer
+    for block in pageContent:
+        if block["has_children"]:
+            blockContent = notionAPI.getBlocks(block["id"])["results"]
+            pageContent += blockContent
 
     return pageContent
 
@@ -182,16 +183,16 @@ def getImages(content):
             images.append((url, filename))
             # Add image to body
     return images
-            
+
 
 def getContentTypes(content):
     """ Returns list of content types in block of Notion content .
-        
+
         Parameters:
             content (json[]): JSON array of typed content
-            
+
 
         Returns:
             List of content types.
     """
-    return [item["type"] for item in content ]
+    return [item["type"] for item in content]

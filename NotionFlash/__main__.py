@@ -1,6 +1,3 @@
-import requests
-import json
-import time
 import os
 from dotenv import load_dotenv
 import notionservice.service as notionService
@@ -26,7 +23,6 @@ PAGES = [{"pageID":os.getenv("DUMMY_PAGE_ID"), "cardTag": "dummy"}]
 
 
 #************** HELPERS **************#
-
 
 def getQuestion(toggle):
     return notionService.getToggleHeader(toggle)

@@ -38,33 +38,13 @@ class ankiCard:
         
         self.addContent(question, answer)
 
-
-    
-
-    def downloadMedia(url, filename):
-        """ ANKI api request to download media. Filename is usually block-id from notion concatenated with file type."""
-        payload =  {
-            "action": "storeMediaFile",
-            "params": {
-            "filename": filename ,
-            "url": url
-            }
-        }
-        response = requests.post(ankiServerURL, json=payload).json()
-        if len(response) != 2:
-            print('response has an unexpected number of fields')
-        if 'error' not in response:
-            print('response is missing required error field')
-        if 'result' not in response:
-            print('response is missing required result field')
-        
-        return response
-    
-
-
     def addContent(self, question, answer):
-       
+        """ Add question and answer content to card.
+
+            Parameters:
+                question (str): Question to go on front of Anki card.
+                answer (str): Answer to go on back of Anki card.
+
+        """
         self.payload["note"]["fields"]["Front"] = question
         self.payload["note"]["fields"]["Back"] = answer
-
-        
