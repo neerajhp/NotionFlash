@@ -1,4 +1,8 @@
 import notionservice.api as notionAPI
+import logging
+
+# Get logger
+logger = logging.getLogger(__name__)
 
 
 def getToggleHeader(toggle):
@@ -41,6 +45,8 @@ def getPageRootBlocks(id):
     params = {}
     pageBlocks = []
 
+    logger.info("Requesting blocks from page...")
+
     while (getNext):
 
         # Get children of specified block/page specified by id
@@ -48,6 +54,7 @@ def getPageRootBlocks(id):
 
         # Check if pagination required
         if blocks["has_more"]:
+            logger.info("Requesting more blocks from page...")
             params["start_cursor"] = blocks["next_cursor"]
             getNext = True
         else:

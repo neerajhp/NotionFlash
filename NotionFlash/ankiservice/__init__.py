@@ -5,7 +5,8 @@ import logging.config
 
 # # Logging Utility
 # logger = logging.getLogger(__name__)
-logging.config.fileConfig(fname='logging.conf', disable_existing_loggers=False)
+logging.config.fileConfig(fname="./logs/logging.conf",
+                          disable_existing_loggers=False)
 logger = logging.getLogger(__name__)
 
 

@@ -46,8 +46,12 @@ def main():
     os.system("open /Applications/Anki.app")
 
     for notionPage in PAGES:
+        logger.info("Connecting to " +
+                    notionPage["cardTag"] + " page on Notion")
         pageBlocks = notionService.getAllPageBlocks(notionPage["pageID"])
         toggleLists = notionService.filterBlocks(pageBlocks, "toggle")
+        logger.info("Successfully collected %d toggle lists" %
+                    len(toggleLists))
         # TODO filter toggleLists by last updated
 
         for toggle in toggleLists:
@@ -72,7 +76,7 @@ def main():
 
 
 if __name__ == '__main__':
-    logging.config.fileConfig(fname='logging.conf',
+    logging.config.fileConfig(fname="./logs/logging.conf",
                               disable_existing_loggers=False)
     logger = logging.getLogger(__name__)
     logger.info("Let's Begin")
