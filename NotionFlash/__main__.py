@@ -46,16 +46,17 @@ def main():
     os.system("open /Applications/Anki.app")
 
     for notionPage in PAGES:
-        logger.info("Connecting to " +
-                    notionPage["cardTag"] + " page on Notion")
+        logger.debug("Connecting to " +
+                     notionPage["cardTag"] + " page on Notion")
         pageBlocks = notionService.getAllPageBlocks(notionPage["pageID"])
         toggleLists = notionService.filterBlocks(pageBlocks, "toggle")
-        logger.info("Successfully collected %d toggle lists" %
-                    len(toggleLists))
+        logger.info("Successfully collected %d toggle lists from %s" %
+                    (len(toggleLists), notionPage["cardTag"]))
         # TODO filter toggleLists by last updated
 
         for toggle in toggleLists:
             # Get Question and Answer
+            logger.debug("Transforming toggle into Anki card")
             toggleQuestion = getQuestion(toggle)
             toggleAnswer = getAnswer(toggle)
             # Check if content contains image

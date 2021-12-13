@@ -1,9 +1,13 @@
+import logging
 import json
 import requests
 from urllib.request import urlopen, Request
 
+
 #************** SETUP **************#
 
+# Get logger
+logger = logging.getLogger(__name__)
 
 # API Endpoints and variables
 # TODO figure out how to move to .env?
@@ -27,16 +31,14 @@ def addCard(card):
         "version": 6,
         "params": card.payload
     }
-    print
-    # TODO move to error handler
+
+    logger.debug("Attempting to add card to Anki")
+
     response = requests.post(ANK_SERVER_URL, json=payload).json()
-    print(response["error"])
-    if len(response) != 2:
-        print('response has an unexpected number of fields')
-    if 'error' not in response:
-        print('response is missing required error field')
-    if 'result' not in response:
-        print('response is missing required result field')
+    errMsg = errCheck(response)
+
+    if (errMsg):
+        logger.error("Could not add card : %s" % errMsg)
 
     return response
 
@@ -60,16 +62,26 @@ def downloadMedia(url, filename):
             "url": url
         }
     }
+
     response = requests.post(ANK_SERVER_URL, json=payload).json()
-    # TODO Move to error handler
+    errMsg = errCheck(response)
+
     if response == filename:
         print("Media with that filename already exists locally.")
         return response
-    if len(response) != 2:
-        print('response has an unexpected number of fields')
-    if 'error' not in response:
-        print('response is missing required error field')
-    if 'result' not in response:
-        print('response is missing required result field')
+    if (errMsg):
+        logger.error("Could not add card : %s" % errMsg)
 
     return response
+
+
+def errCheck(response):
+    if len(response) != 2:
+        return'response has an unexpected number of fields'
+    if 'error' not in response:
+        return 'response is missing required error field'
+    if 'result' not in response:
+        return 'response is missing required result field'
+    if response["error"] != None:
+        return response["error"]
+    return False
