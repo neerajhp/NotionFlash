@@ -1,9 +1,10 @@
+import logging
+import logging.config
 import os
 from dotenv import load_dotenv
 import notionservice.service as notionService
 import ankiservice.service as ankiService
 from ankiservice.ankiCard import ankiCard
-
 
 
 #************** CONSTANTS **************#
@@ -13,13 +14,13 @@ DEBUG = False
 # Load environment variables
 load_dotenv()
 
-#ANKI server properties
+# ANKI server properties
 DECK = os.getenv("DECK")
 
-#Connect to Notion
+# Connect to Notion
 # API Endpoints and variables
 
-PAGES = [{"pageID":os.getenv("DUMMY_PAGE_ID"), "cardTag": "dummy"}]
+PAGES = [{"pageID": os.getenv("DUMMY_PAGE_ID"), "cardTag": "dummy"}]
 
 
 #************** HELPERS **************#
@@ -27,55 +28,53 @@ PAGES = [{"pageID":os.getenv("DUMMY_PAGE_ID"), "cardTag": "dummy"}]
 def getQuestion(toggle):
     return notionService.getToggleHeader(toggle)
 
+
 def getAnswer(toggle):
     return notionService.getToggleBody(toggle)
 
 #************** MAIN **************#
 
+
 def main():
 
     if DEBUG:
         __location__ = os.path.realpath(
-        os.path.join(os.getcwd(), os.path.dirname(__file__)))
+            os.path.join(os.getcwd(), os.path.dirname(__file__)))
         f = open(os.path.join(__location__, "./output.txt"), "w")
 
-    #Open Anki
+    # Open Anki
     os.system("open /Applications/Anki.app")
 
-    for notionPage in PAGES: 
+    for notionPage in PAGES:
         pageBlocks = notionService.getAllPageBlocks(notionPage["pageID"])
         toggleLists = notionService.filterBlocks(pageBlocks, "toggle")
-        #TODO filter toggleLists by last updated
+        # TODO filter toggleLists by last updated
 
         for toggle in toggleLists:
-            #Get Question and Answer
+            # Get Question and Answer
             toggleQuestion = getQuestion(toggle)
             toggleAnswer = getAnswer(toggle)
-            #Check if content contains image
-            if ("image" in notionService.getContentTypes(toggleAnswer)) :
+            # Check if content contains image
+            if ("image" in notionService.getContentTypes(toggleAnswer)):
                 images = notionService.getImages(toggleAnswer)
                 for image in images:
-                    #Download image(s) to anki
+                    # Download image(s) to anki
                     ankiService.downloadMedia(image[0], image[1])
 
-            #Stringify notion content
+            # Stringify notion content
             questionString = notionService.stringifyContent(toggleQuestion)
             answerString = notionService.stringifyContent(toggleAnswer)
-            #Transform into ANKI payload
-            newCard = ankiCard(DECK,  notionPage["cardTag"], questionString, answerString)
-            # Add card 
+            # Transform into ANKI payload
+            newCard = ankiCard(
+                DECK,  notionPage["cardTag"], questionString, answerString)
+            # Add card
             ankiService.addCard(newCard)
 
 
-
 if __name__ == '__main__':
-    PROFILER = False
-    if PROFILER:
-        import cProfile, pstats
-        profiler = cProfile.Profile()
-        profiler.enable()
-        main()
-        stats = pstats.Stats(profiler).sort_stats('ncalls')
-        stats.print_stats()
-    else:
-        main()
+    logging.config.fileConfig(fname='logging.conf',
+                              disable_existing_loggers=False)
+    logger = logging.getLogger(__name__)
+    logger.info("Let's Begin")
+
+    main()
