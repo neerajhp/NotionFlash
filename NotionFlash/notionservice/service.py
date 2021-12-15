@@ -1,4 +1,8 @@
 import notionservice.api as notionAPI
+import logging
+
+# Get logger
+logger = logging.getLogger(__name__)
 
 
 def getToggleHeader(toggle):
@@ -11,6 +15,8 @@ def getToggleHeader(toggle):
             pageBlocks (json[]): JSON array of parent blocks on page.
     """
     # TODO Need more comprehensive testing
+    # LOG
+    logger.debug("Getting header of toggle")
     return toggle['toggle']['text']
 
 
@@ -23,6 +29,8 @@ def getToggleBody(toggle):
         Returns:
             Notion JSON payload of content
     """
+    # LOG
+    logger.debug("Getting body of toggle")
     return notionAPI.getBlocks(toggle['id'])['results']
 
 
@@ -41,19 +49,25 @@ def getPageRootBlocks(id):
     params = {}
     pageBlocks = []
 
+    # LOG
+    logger.debug("Requesting blocks from page...")
+
     while (getNext):
 
-        # Get children of specified block/page specified by id
+        # Get children of specified page specified by id
         blocks = notionAPI.getBlocks(id, params)
 
         # Check if pagination required
         if blocks["has_more"]:
+            logger.debug("Requesting more blocks from page...")
             params["start_cursor"] = blocks["next_cursor"]
             getNext = True
         else:
             getNext = False
 
         pageBlocks += blocks["results"]
+
+    logger.debug("Got %d blocks from page" % len(pageBlocks))
 
     return pageBlocks
 
@@ -68,6 +82,9 @@ def filterBlocks(content, filter):
         Returns:
             JSON array of filtered content.
     """
+    # LOG
+    logger.debug("Filtering content of type: %s" % filter)
+
     return [block for block in content if block['type'] == filter]
 
 
@@ -81,9 +98,8 @@ def getAllPageBlocks(pageID):
             pageContent (json[]): JSON array of page content.
     """
 
+    logger.debug("Requesting blocks from page...")
     pageContent = getPageRootBlocks(pageID)
-
-    # BUG: If parent block is toggle then content returned is only toggle answer
     for block in pageContent:
         if block["has_children"]:
             blockContent = notionAPI.getBlocks(block["id"])["results"]
@@ -102,6 +118,8 @@ def parseToHTML(contentArray):
         Returns:
             string (str): Stringified content
     """
+    # LOG
+    logger.debug("Attempting to parse Notion rich text content to html")
 
     string = ""
     for content in contentArray:
@@ -127,6 +145,8 @@ def stringifyContent(content):
         Returns:
             string (str): Stringified content
     """
+    # LOG
+    logger.debug("Stringifying Notion content")
 
     string = ""
 
@@ -175,6 +195,9 @@ def getImages(content):
         Returns:
             images ([str, str]): List of (url, filename) tuple for each image found
     """
+    # LOG
+    logger.debug("Getting images from Notion content body")
+
     images = []
     for item in content:
         if item["type"] == "image":
@@ -195,4 +218,5 @@ def getContentTypes(content):
         Returns:
             List of content types.
     """
+    logger.debug("Getting content types of Notion content")
     return [item["type"] for item in content]

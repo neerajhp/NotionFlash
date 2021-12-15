@@ -1,4 +1,6 @@
 *.env
 *.txt
+*.log
 .vscode
 .venv/
+__pycache__/

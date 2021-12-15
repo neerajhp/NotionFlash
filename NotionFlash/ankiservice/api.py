@@ -1,9 +1,13 @@
+import logging
 import json
 import requests
 from urllib.request import urlopen, Request
 
+
 #************** SETUP **************#
 
+# Get logger
+logger = logging.getLogger(__name__)
 
 # API Endpoints and variables
 # TODO figure out how to move to .env?
@@ -18,27 +22,32 @@ def addCard(card):
     Parameters:
         card (ankiCard): Card to be added to
 
-
     Returns:
-        response: ANKIConnect response message
+        1 if card succesfully added.
+        0 if card already exists in deck.
+        -1 if there was an error adding card.
     """
     payload = {
         "action": "addNote",
         "version": 6,
         "params": card.payload
     }
-    print
-    # TODO move to error handler
-    response = requests.post(ANK_SERVER_URL, json=payload).json()
-    print(response["error"])
-    if len(response) != 2:
-        print('response has an unexpected number of fields')
-    if 'error' not in response:
-        print('response is missing required error field')
-    if 'result' not in response:
-        print('response is missing required result field')
 
-    return response
+    logger.debug("Attempting to add card to Anki")
+    # Attempt to post card
+    response = requests.post(ANK_SERVER_URL, json=payload).json()
+    # Check response for errors
+    errMsg = errCheck(response)
+
+    # Handle error message
+    if (errMsg):
+        if (errMsg == "cannot create note because it is a duplicate"):
+            return 0
+        else:
+            logger.error("Could not add card : %s" % errMsg)
+            return -1
+
+    return 1
 
 
 def downloadMedia(url, filename):
@@ -60,16 +69,36 @@ def downloadMedia(url, filename):
             "url": url
         }
     }
+
     response = requests.post(ANK_SERVER_URL, json=payload).json()
-    # TODO Move to error handler
+    errMsg = errCheck(response)
+
     if response == filename:
-        print("Media with that filename already exists locally.")
+        logger.error("Media with that filename already exists locally.")
         return response
-    if len(response) != 2:
-        print('response has an unexpected number of fields')
-    if 'error' not in response:
-        print('response is missing required error field')
-    if 'result' not in response:
-        print('response is missing required result field')
+    if (errMsg):
+        logger.error("Could not add media file : %s" % errMsg)
 
     return response
+
+
+def errCheck(response):
+    """  Checks errors in response from Anki connect and returns appropriate message
+
+    Parameters:
+        response (JSON): URL where media is located
+
+    Returns:
+        False if no error.
+        Error message string otherwise.
+    """
+
+    if len(response) != 2:
+        return'response has an unexpected number of fields'
+    if 'error' not in response:
+        return 'response is missing required error field'
+    if 'result' not in response:
+        return 'response is missing required result field'
+    if response["error"] != None:
+        return response["error"]
+    return False
