@@ -89,6 +89,7 @@ def main():
             if (res == -1):
                 errorCards += 1
 
+        logger.info("New cards added to %s deck" % DECK)
         logger.info("Number of new cards added: %d" % newCards)
         logger.info("Number of duplicate cards detected: %d" % duplicateCards)
         logger.info("Number of cards with errors: %d" % errorCards)
