@@ -46,8 +46,13 @@ def main():
     os.system("open /Applications/Anki.app")
 
     for notionPage in PAGES:
-        logger.debug("Connecting to " +
-                     notionPage["cardTag"] + " page on Notion")
+        # Track number of duplicate cards
+        duplicateCards = newCards = errorCards = 0
+
+        # Get all toggle lists from notion page
+        logger.info("Connecting to " +
+                    notionPage["cardTag"] + " page on Notion")
+
         pageBlocks = notionService.getAllPageBlocks(notionPage["pageID"])
         toggleLists = notionService.filterBlocks(pageBlocks, "toggle")
         logger.info("Successfully collected %d toggle lists from %s" %
@@ -72,8 +77,21 @@ def main():
             # Transform into ANKI payload
             newCard = ankiCard(
                 DECK,  notionPage["cardTag"], questionString, answerString)
-            # Add card
-            ankiService.addCard(newCard)
+
+            # Attempt to add card
+            res = ankiService.addCard(newCard)
+            # TODO abstract
+            # Record result of attempt
+            if (res == 1):
+                newCards += res
+            if (res == 0):
+                duplicateCards += 1
+            if (res == -1):
+                errorCards += 1
+
+        logger.info("Number of new cards added: %d" % newCards)
+        logger.info("Number of duplicate cards detected: %d" % duplicateCards)
+        logger.info("Number of cards with errors: %d" % errorCards)
 
 
 if __name__ == '__main__':

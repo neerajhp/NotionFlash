@@ -10,4 +10,4 @@ def downloadMedia(url, filename):
 
 
 def addCard(card):
-    ankiAPI.addCard(card)
+    return ankiAPI.addCard(card)

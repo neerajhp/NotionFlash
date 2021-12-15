@@ -13,7 +13,7 @@ load_dotenv()
 # API Endpoints and variables
 # TODO figure out how to move to .env?
 SECRET = os.getenv("NOTION_SECRET")
-baseNotionURL = "https://api.notion.com/v1/blocks/"
+baseNotionURL = "https://api.notion.com/v1/blocks/"  # Should be v1
 HEADER = {"Authorization": SECRET, "Notion-Version": "2021-05-13",
           "Content-Type": "application/json"}
 
@@ -35,17 +35,18 @@ def getBlocks(id, params={}):
             baseNotionURL + id + "/children", headers=HEADER, data={}, params=params)
         response.raise_for_status()
     # TODO Move to error handler
+
     except requests.exceptions.HTTPError as errh:
-        print("There was an error with Notion")
+        logger.error("HTTPERROR:  There was an error connecting to Notion")
         pass
     except requests.exceptions.ConnectionError as errc:
-        print(errc)
+        logger.error(errc)
         pass
     except requests.exceptions.Timeout as errt:
-        print(errt)
+        logger.error(errt)
         pass
     except requests.exceptions.RequestException as err:
-        print(err)
+        logger.error(err)
 
     logger.debug("Request successful")
     return response.json()
